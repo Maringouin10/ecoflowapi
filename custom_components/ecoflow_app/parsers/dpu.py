@@ -38,11 +38,24 @@ BP_INFO_REPORT_SCHEMA: dict[int, Field] = {
 }
 DISPLAY_SCHEMA: dict[int, Field] = {**GEN3_DISPLAY, **DPU_DISPLAY}
 
-# Heartbeats are full snapshots, and a float at 0 is left out of the frame.
-# These are the fields filled with 0 when missing, so an idle port still has
-# a sensor (and a 0 W reading) instead of never appearing.
-_SNAPSHOT_FLOATS_SHOW = [f.name for f in DPU_APP_SHOW.values() if f.kind == FLOAT]
-_SNAPSHOT_FLOATS_BACKEND = [f.name for f in DPU_BACKEND.values() if f.kind == FLOAT]
+# Heartbeats only carry the fields that changed, so a missing field keeps its
+# last value (the hub merges). A port that has never reported still needs a
+# sensor, though: for those fields a 0 is returned under DEFAULTS_KEY, which
+# the hub applies only to keys it has never seen.
+DEFAULTS_KEY = "_defaults"
+_FLOATS_SHOW = [f.name for f in DPU_APP_SHOW.values() if f.kind == FLOAT]
+_FLOATS_BACKEND = [f.name for f in DPU_BACKEND.values() if f.kind == FLOAT]
+
+
+def _with_defaults(fields: dict[str, Any], floats: list[str], mapper) -> dict[str, Any]:
+    """Map ``fields``, plus 0-valued defaults for the floats it lacks."""
+    out = mapper(fields)
+    padded = {**{name: 0.0 for name in floats}, **fields}
+    defaults = {k: v for k, v in mapper(padded).items() if k not in out}
+    if defaults:
+        out[DEFAULTS_KEY] = defaults
+    return out
+
 
 _APP_SHOW_POWERS: dict[str, str] = {
     "watts_in_sum": "input_power_w",
@@ -65,25 +78,6 @@ _APP_SHOW_POWERS: dict[str, str] = {
     "in_hv_mppt_pwr": "solar_hv_in_power_w",
     "out_pr_pwr": "pr_out_power_w",
 }
-
-# AC outlets that add up to the total AC output.
-_AC_OUTLETS = (
-    "out_ac_l1_1_pwr",
-    "out_ac_l1_2_pwr",
-    "out_ac_l2_1_pwr",
-    "out_ac_l2_2_pwr",
-    "out_ac_tt_pwr",
-    "out_ac_l14_pwr",
-)
-
-# DC outputs that add up to the total DC output.
-_DC_OUTLETS = (
-    "out_usb1_pwr",
-    "out_usb2_pwr",
-    "out_typec1_pwr",
-    "out_typec2_pwr",
-    "out_ads_pwr",
-)
 
 _APP_SHOW_PLAIN: dict[str, str] = {
     "soc": "soc",
@@ -164,18 +158,14 @@ def _is_number(value: Any) -> bool:
 
 def parse_app_show(pdata: bytes) -> dict[str, Any]:
     """Parse AppShowHeartbeatReport (2/1)."""
-    fields = decode(pdata, APP_SHOW_SCHEMA)
-    snapshot = _is_number(fields.get("watts_out_sum")) or _is_number(fields.get("soc"))
-    if snapshot:
-        for name in _SNAPSHOT_FLOATS_SHOW:
-            fields.setdefault(name, 0.0)
+    return _with_defaults(decode(pdata, APP_SHOW_SCHEMA), _FLOATS_SHOW, _map_app_show)
+
+
+def _map_app_show(fields: dict[str, Any]) -> dict[str, Any]:
     out: dict[str, Any] = {}
     for src, dest in _APP_SHOW_POWERS.items():
         if _is_number(fields.get(src)):
             out[dest] = round(abs(float(fields[src])), 1)
-    if snapshot:
-        out["ac_out_power_w"] = round(sum(abs(float(fields[k])) for k in _AC_OUTLETS), 1)
-        out["dc_out_power_w"] = round(sum(abs(float(fields[k])) for k in _DC_OUTLETS), 1)
     for src, dest in _APP_SHOW_PLAIN.items():
         if _is_number(fields.get(src)):
             out[dest] = float(fields[src])
@@ -191,10 +181,10 @@ def parse_app_show(pdata: bytes) -> dict[str, Any]:
 
 def parse_backend(pdata: bytes) -> dict[str, Any]:
     """Parse BackendRecordHeartbeatReport (2/2)."""
-    fields = decode(pdata, BACKEND_SCHEMA)
-    if fields:
-        for name in _SNAPSHOT_FLOATS_BACKEND:
-            fields.setdefault(name, 0.0)
+    return _with_defaults(decode(pdata, BACKEND_SCHEMA), _FLOATS_BACKEND, _map_backend)
+
+
+def _map_backend(fields: dict[str, Any]) -> dict[str, Any]:
     out: dict[str, Any] = {}
     for src, (dest, digits) in _BACKEND_FIELDS.items():
         if _is_number(fields.get(src)):
@@ -240,7 +230,6 @@ def parse_bp_info(pdata: bytes) -> dict[str, Any]:
         if not isinstance(number, int) or not 1 <= number <= 5:
             continue
         prefix = f"pack{number}_"
-        item.setdefault("bp_pwr", 0.0)
         if _is_number(item.get("bp_soc")):
             out[f"{prefix}soc"] = float(item["bp_soc"])
         if _is_number(item.get("bp_pwr")):

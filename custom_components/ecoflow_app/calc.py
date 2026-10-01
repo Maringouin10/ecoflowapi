@@ -21,6 +21,23 @@ ENERGY_SOURCES: dict[str, str] = {
 # A remaining time this long (> 4 days) is a placeholder, not an estimate.
 REMAIN_TIME_PLACEHOLDER_MIN = 6000
 
+# Delta Pro Ultra: per-outlet powers that add up to the AC / DC totals.
+_DPU_AC_OUTLETS = (
+    "ac_l1_1_out_power_w",
+    "ac_l1_2_out_power_w",
+    "ac_l2_1_out_power_w",
+    "ac_l2_2_out_power_w",
+    "ac_tt30_out_power_w",
+    "ac_l14_out_power_w",
+)
+_DPU_DC_OUTLETS = (
+    "usb_a1_out_power_w",
+    "usb_a2_out_power_w",
+    "usb_c1_out_power_w",
+    "usb_c2_out_power_w",
+    "dc_anderson_out_power_w",
+)
+
 _SOLAR_KEYS = (
     "solar_in_power_w",
     "solar2_in_power_w",
@@ -43,6 +60,17 @@ def derive(values: dict[str, Any], fresh: dict[str, Any]) -> dict[str, Any]:
     reported by the device from one copied here.
     """
     derived: dict[str, Any] = {}
+
+    # Totals from the merged per-outlet values (never from one frame, which
+    # only carries the outlets that changed).
+    if any(_num(values.get(k)) for k in _DPU_AC_OUTLETS):
+        derived["ac_out_power_w"] = round(
+            sum(float(values[k]) for k in _DPU_AC_OUTLETS if _num(values.get(k))), 1
+        )
+    if _num(values.get("dc_anderson_out_power_w")):
+        derived["dc_out_power_w"] = round(
+            sum(float(values[k]) for k in _DPU_DC_OUTLETS if _num(values.get(k))), 1
+        )
 
     solar = [values[k] for k in _SOLAR_KEYS if _num(values.get(k))]
     if solar:

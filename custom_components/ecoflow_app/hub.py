@@ -342,6 +342,8 @@ class EcoFlowHub:
         device.last_seen = now
         device.message_count += 1
         device.values.update(result.values)
+        for key, value in result.defaults.items():
+            device.values.setdefault(key, value)
         device.values.update(derive(device.values, result.values))
         integrate(device.values, device.energy_last, now, ENERGY_MAX_GAP_S)
 

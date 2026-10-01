@@ -20,6 +20,9 @@ class ParseResult:
     """What one MQTT message contained."""
 
     values: dict[str, Any] = field(default_factory=dict)
+    # Values to use only for keys the device has never reported (a port
+    # that is idle since startup, so absent from incremental frames).
+    defaults: dict[str, Any] = field(default_factory=dict)
     # Detected dialect from the frame itself ("" if nothing was recognised).
     dialect: str = ""
     # (cmd_func, cmd_id) -> field numbers, for frames nobody parses yet.
@@ -75,6 +78,7 @@ def parse_payload(payload: bytes, model: DeviceModel) -> ParseResult:
             if frame.pdata:
                 result.unknown_frames[(frame.cmd_func, frame.cmd_id)] = field_numbers(frame.pdata)
             continue
+        result.defaults.update(parsed.pop(dpu.DEFAULTS_KEY, {}))
         result.values.update(parsed)
     return result
 

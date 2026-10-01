@@ -30,8 +30,8 @@ def test_app_show_heartbeat() -> None:
     assert values["ac_in_power_w"] == 800.0
     assert values["solar_lv_in_power_w"] == 150.0
     assert values["solar_hv_in_power_w"] == 250.0
-    # Outlets missing from a full heartbeat are at 0 W.
-    assert values["ac_out_power_w"] == 450.0
+    assert values["ac_l1_1_out_power_w"] == 200.0
+    assert values["ac_l14_out_power_w"] == 250.0
 
 
 def test_backend_and_settings() -> None:
@@ -66,15 +66,18 @@ def test_display_frame_on_a_dpu_uses_the_dpu_schema() -> None:
     assert values == {"soc": 66.6, "max_charge_soc": 100, "full_capacity_wh": 6144}
 
 
-def test_idle_dc_output_still_reported() -> None:
-    # A heartbeat with the DC (Anderson) output at 0 W: the device leaves the
-    # field out, the sensor must still exist with 0 W.
+def test_missing_fields_are_defaults_not_readings() -> None:
+    # Heartbeats only carry what changed. A missing outlet must not read 0 W
+    # (the TV would flicker 150 -> 0 -> 150); it only gets a 0 W default so
+    # an outlet idle since startup still has a sensor.
     pdata = u(21, 50) + f32(41, 100.0) + f32(42, 60.0) + f32(43, 10.0) + f32(45, 50.0)
-    values = parse_payload(frame(2, 1, pdata), DPU).values
-    assert values["dc_anderson_out_power_w"] == 0.0
-    assert values["usb_c2_out_power_w"] == 0.0
-    assert values["dc_out_power_w"] == 60.0
-    assert values["ac_out_power_w"] == 0.0
+    result = parse_payload(frame(2, 1, pdata), DPU)
+    assert "dc_anderson_out_power_w" not in result.values
+    assert "ac_l1_1_out_power_w" not in result.values
+    assert result.values["usb_a1_out_power_w"] == 10.0
+    assert result.defaults["dc_anderson_out_power_w"] == 0.0
+    assert result.defaults["ac_l1_1_out_power_w"] == 0.0
+    assert "usb_a1_out_power_w" not in result.defaults
 
 
 def test_dc_output_voltage_current_and_raw_fields() -> None:
@@ -85,7 +88,7 @@ def test_dc_output_voltage_current_and_raw_fields() -> None:
     assert values["ac_l1_1_out_voltage_v"] == 120.1
     # Fields without a dedicated sensor are still exposed.
     assert values["raw_sys_work_sta"] == 3
-    assert values["raw_ev_max_charger_cur"] == 0.0
+    assert "raw_ev_max_charger_cur" not in values
 
 
 def test_settings_and_pack_extras() -> None:
@@ -98,6 +101,6 @@ def test_settings_and_pack_extras() -> None:
     assert values["solar_only_enabled"] is False
     assert values["raw_sys_work_mode"] == 2
     assert values["pack3_soc"] == 90
-    assert values["pack3_power_w"] == 0.0
+    assert "pack3_power_w" not in values
     assert values["raw_pack3_bp_soc_max"] == 100
     assert values["raw_pack3_heat_time"] == 12

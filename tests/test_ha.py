@@ -187,3 +187,57 @@ async def test_messages_create_entities(hass: HomeAssistant) -> None:
         assert disabled_by("P351ZAB0000001_usb_c2_out_power_w") is er.RegistryEntryDisabler.USER
 
         assert await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_dpu_outlet_keeps_its_value_between_incremental_frames(hass: HomeAssistant) -> None:
+    from .helpers import f32, frame, u
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id="1234",
+        data={
+            "email": "me@example.com",
+            "password": "pw",
+            "devices": [
+                {
+                    "sn": "Y711ZAB0000009",
+                    "name": "DPU",
+                    "product_name": "DELTA Pro Ultra",
+                    "model": "delta_pro_ultra",
+                }
+            ],
+        },
+    )
+    entry.add_to_hass(hass)
+
+    async def creds(self) -> dict:
+        return {"account": "a", "password": "b", "host": None}
+
+    FakeMqtt.instances.clear()
+    with (
+        patch(f"{API}.login", _login),
+        patch(f"{API}.get_mqtt_credentials", creds),
+        patch("custom_components.ecoflow_app.hub.EcoFlowMqttClient", FakeMqtt),
+    ):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        on_message = FakeMqtt.instances[0].kwargs["on_message"]
+        topic = "/app/device/property/Y711ZAB0000009"
+
+        on_message(topic, frame(2, 1, u(21, 80) + f32(48, 150.0) + f32(50, 12.0)))
+        await hass.async_block_till_done()
+        # Next frame only carries the USB port that changed.
+        on_message(topic, frame(2, 1, f32(43, 5.0)))
+        await hass.async_block_till_done()
+
+        def state(entity_id: str) -> str:
+            return hass.states.get(entity_id).state
+
+        assert state("sensor.dpu_ac_outlet_l1_1_power") == "150.0"
+        assert state("sensor.dpu_ac_outlet_l2_1_power") == "12.0"
+        assert state("sensor.dpu_ac_output_power") == "162.0"
+        # Never reported: created with 0 W, and still 0 W.
+        assert state("sensor.dpu_dc_output_power_anderson") == "0.0"
+        assert state("sensor.dpu_dc_output_power_total") == "5.0"
+
+        assert await hass.config_entries.async_unload(entry.entry_id)

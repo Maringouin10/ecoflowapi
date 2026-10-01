@@ -64,3 +64,17 @@ def test_gaps_are_not_integrated() -> None:
     integrate(values, last, 0.0, 300)
     integrate(values, last, 3600.0, 300)
     assert values["ac_out_energy_kwh"] == 1.0
+
+
+def test_dpu_totals_use_merged_outlets() -> None:
+    # The TV outlet reported 150 W in an earlier frame; the latest frame only
+    # changed the USB port. The total must still include the TV.
+    values = {
+        "ac_l1_1_out_power_w": 150.0,
+        "ac_l2_1_out_power_w": 12.0,
+        "dc_anderson_out_power_w": 0.0,
+        "usb_a1_out_power_w": 5.0,
+    }
+    derived = derive(values, {"usb_a1_out_power_w": 5.0})
+    assert derived["ac_out_power_w"] == 162.0
+    assert derived["dc_out_power_w"] == 5.0
