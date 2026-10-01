@@ -53,6 +53,7 @@ from .const import (
 from .models import DIALECT_JSON, DeviceModel, model_by_key
 from .mqtt_client import AUTH_FAILURE_CODES, EcoFlowMqttClient, sn_from_topic
 from .parsers import parse_payload
+from .parsers.raw import RAW_PREFIX
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -72,6 +73,9 @@ class DeviceState:
     model: DeviceModel
     values: dict[str, Any] = field(default_factory=dict)
     seen_keys: set[str] = field(default_factory=set)
+    # raw key -> whether its value is numeric (kept so the entity keeps its
+    # state class across restarts, before the first value arrives)
+    raw_numeric: dict[str, bool] = field(default_factory=dict)
     last_seen: float = 0.0
     dialect: str = ""
     cloud_online: bool | None = None
@@ -135,6 +139,7 @@ class EcoFlowHub:
             if device is None:
                 continue
             device.seen_keys = set(saved.get("seen_keys", []))
+            device.raw_numeric = dict(saved.get("raw_numeric", {}))
             for key, value in (saved.get("energy") or {}).items():
                 if isinstance(value, (int, float)):
                     device.values[key] = float(value)
@@ -183,6 +188,7 @@ class EcoFlowHub:
             "devices": {
                 sn: {
                     "seen_keys": sorted(device.seen_keys),
+                    "raw_numeric": device.raw_numeric,
                     "energy": {
                         key: device.values[key]
                         for key in ENERGY_SOURCES.values()
@@ -343,6 +349,10 @@ class EcoFlowHub:
             k for k, v in device.values.items() if v is not None and not k.startswith("_")
         } - device.seen_keys
         if new_keys:
+            for key in new_keys:
+                if key.startswith(RAW_PREFIX):
+                    value = device.values[key]
+                    device.raw_numeric[key] = isinstance(value, (int, float))
             device.seen_keys |= new_keys
             async_dispatcher_send(
                 self.hass,

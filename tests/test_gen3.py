@@ -63,6 +63,20 @@ def test_river_3_lifetime_counters_and_negative_outputs() -> None:
 
 
 def test_unknown_frames_are_reported() -> None:
-    result = parse_payload(frame(254, 22, u(26, 1) + u(27, 2)), DELTA3)
+    result = parse_payload(frame(254, 99, u(26, 1) + u(27, 2)), DELTA3)
     assert result.values == {}
-    assert result.unknown_frames == {(254, 22): [26, 27]}
+    assert result.unknown_frames == {(254, 99): [26, 27]}
+
+
+def test_runtime_frame_and_every_field_from_a_real_get_all() -> None:
+    payload = (FIXTURES / "p351_two_packs_get_all.bin").read_bytes()
+    values = parse_payload(payload, DELTA3).values
+    assert values["ac_out_voltage_v"] == 230.1
+    assert values["pcs_dc_temp_c"] == 35.0
+    assert values["solar_in_voltage_v"] == 29.9
+    # Per-cell data of both packs, as raw values.
+    assert sum(k.startswith("raw_cell_vol_") for k in values) == 16
+    assert sum(k.startswith("raw_extra1_cell_vol_") for k in values) == 16
+    assert len([k for k in values if k.startswith("raw_")]) > 200
+    # Serial numbers never become values.
+    assert not any("_sn" in k or k.endswith("sn") for k in values)

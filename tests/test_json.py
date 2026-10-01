@@ -100,3 +100,15 @@ def test_latest_quotas_reply() -> None:
 def test_garbage_is_ignored() -> None:
     assert parse_payload(b"{not json", DELTA2).values == {}
     assert parse_payload(b"\xff\xff\xff", DELTA2).values == {}
+
+
+def test_unmapped_keys_are_raw_values() -> None:
+    v = parse_payload(
+        _payload(
+            {"pd.usbqcUsedTime": 1234, "inv.fanState": 1, "bms_bmsStatus.cellVol": [3300, 3310]}
+        ),
+        DELTA2,
+    ).values
+    assert v["raw_pd_usbqcUsedTime"] == 1234
+    assert v["raw_inv_fanState"] == 1
+    assert v["raw_bms_bmsStatus_cellVol_2"] == 3310

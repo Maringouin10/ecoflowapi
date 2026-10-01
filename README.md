@@ -50,19 +50,31 @@ La liste des appareils se modifie ensuite dans **Configurer** sur l'intégration
 ## Capteurs
 
 Les capteurs sont créés **quand la batterie envoie la valeur correspondante**,
-donc un modèle sans 12 V n'aura pas de capteur 12 V. Principaux capteurs :
+donc un modèle sans 12 V n'aura pas de capteur 12 V. **Tous les capteurs sont
+activés par défaut.**
+
+Capteurs nommés (traduits, avec unités) :
 
 - niveau de charge, état de santé, état (charge/décharge/repos), autonomie et
-  temps avant charge complète, cycles, température batterie ;
-- puissances : entrée/sortie totales, AC entrée/sortie, solaire (et solaire 2,
-  haute/basse tension selon le modèle), 12 V, USB-A/USB-C, charge et décharge
-  de la batterie ;
-- limites de charge/décharge et réserve de secours (lecture) ;
+  temps avant charge complète, cycles, températures batterie et internes ;
+- puissances : entrée/sortie totales, AC entrée/sortie (et par prise sur la
+  DELTA Pro Ultra), solaire (1, 2, haute/basse tension selon le modèle),
+  sorties DC (12 V, Anderson, total DC), USB-A/USB-C, charge/décharge batterie ;
+- tensions et courants : batterie, AC entrée/sortie, solaire, 12 V, Anderson,
+  chaque port USB et chaque prise AC (DPU), cellules min/max ;
+- réglages (lecture) : limites de charge/décharge, réserve de secours,
+  puissance de charge AC, délais de mise en veille, AC toujours actif ;
 - batteries supplémentaires (DELTA 2/3) et packs (DELTA Pro Ultra) ;
-- diagnostic (désactivés par défaut) : tensions, courants, cellules,
-  capacités, fréquences, températures internes, codes d'erreur ;
-- capteurs binaires : appareil en ligne, sortie AC, sortie 12 V, sortie USB,
-  X-Boost, entrée AC branchée.
+- capteurs binaires : appareil en ligne, sortie AC, 12 V, USB, X-Boost,
+  réserve de secours, AC toujours actif, entrée AC branchée.
+
+**Valeurs brutes** : tous les autres champs que la batterie envoie et dont le
+nom est connu (≈ 600 champs dans les définitions de protocole publiques) sont
+aussi exposés, en capteurs de diagnostic nommés d'après le protocole
+(ex. `cell vol 1` … `cell vol 16` = tension de chaque cellule en mV,
+`extra1 cell temp 2`, `flow info ac out`, versions de firmware, codes
+d'erreur…). Sur une DELTA 3 Plus cela représente environ 280 valeurs en plus
+des 60 capteurs nommés. Les numéros de série ne sont jamais exposés.
 
 ## Tableau de bord Énergie
 
@@ -112,7 +124,9 @@ python scripts/gen_translations.py   # après un ajout de capteur
 
 Les parseurs (`custom_components/ecoflow_app/parsers/`) et le lecteur protobuf
 (`proto.py`) sont en Python pur, sans dépendance, et testés sur des captures
-réelles de DELTA 3.
+réelles de DELTA 3. `parsers/schemas.py` (tous les champs connus) est généré
+par `scripts/gen_schemas.py` à partir des définitions publiques citées
+ci-dessous.
 
 ## Crédits
 

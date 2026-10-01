@@ -93,7 +93,7 @@ def _temp(key: str, enabled: bool = True) -> EcoFlowSensorDescription:
     )
 
 
-def _voltage(key: str, enabled: bool = False, precision: int = 1) -> EcoFlowSensorDescription:
+def _voltage(key: str, enabled: bool = True, precision: int = 1) -> EcoFlowSensorDescription:
     return EcoFlowSensorDescription(
         key=key,
         translation_key=key,
@@ -106,7 +106,7 @@ def _voltage(key: str, enabled: bool = False, precision: int = 1) -> EcoFlowSens
     )
 
 
-def _current(key: str, enabled: bool = False) -> EcoFlowSensorDescription:
+def _current(key: str, enabled: bool = True) -> EcoFlowSensorDescription:
     return EcoFlowSensorDescription(
         key=key,
         translation_key=key,
@@ -127,7 +127,7 @@ def _frequency(key: str) -> EcoFlowSensorDescription:
         native_unit_of_measurement=UnitOfFrequency.HERTZ,
         state_class=SensorStateClass.MEASUREMENT,
         entity_category=DIAG,
-        entity_registry_enabled_default=False,
+        entity_registry_enabled_default=True,
     )
 
 
@@ -145,7 +145,7 @@ def _minutes(key: str, enabled: bool = True) -> EcoFlowSensorDescription:
 def _plain(
     key: str,
     unit: str | None = None,
-    enabled: bool = False,
+    enabled: bool = True,
     state_class: SensorStateClass | None = SensorStateClass.MEASUREMENT,
 ) -> EcoFlowSensorDescription:
     return EcoFlowSensorDescription(
@@ -171,17 +171,17 @@ def _state(key: str) -> EcoFlowSensorDescription:
 _BASE_SENSORS: list[EcoFlowSensorDescription] = [
     # Battery
     _percent("soc", battery=True),
-    _percent("main_battery_soc", battery=True, diag=True, enabled=False),
+    _percent("main_battery_soc", battery=True, diag=True),
     _percent("soh", diag=True),
     _state("chg_dsg_state"),
     _minutes("charge_remaining_min"),
     _minutes("discharge_remaining_min"),
-    _minutes("remaining_time_min", enabled=False),
-    _plain("cycles", state_class=SensorStateClass.TOTAL_INCREASING, enabled=True),
+    _minutes("remaining_time_min"),
+    _plain("cycles", state_class=SensorStateClass.TOTAL_INCREASING),
     _temp("battery_temp_c"),
-    _temp("min_cell_temp_c", enabled=False),
-    _temp("max_cell_temp_c", enabled=False),
-    _temp("max_mos_temp_c", enabled=False),
+    _temp("min_cell_temp_c"),
+    _temp("max_cell_temp_c"),
+    _temp("max_mos_temp_c"),
     _voltage("battery_voltage_v", precision=2),
     _current("battery_current_a"),
     _voltage("min_cell_voltage_v", precision=3),
@@ -191,13 +191,22 @@ _BASE_SENSORS: list[EcoFlowSensorDescription] = [
     _plain("design_capacity_mah", "mAh"),
     _plain("remain_capacity_wh", UnitOfEnergy.WATT_HOUR),
     _plain("full_capacity_wh", UnitOfEnergy.WATT_HOUR),
-    _plain("battery_pack_count", enabled=True, state_class=None),
-    _power("battery_power_w", enabled=False),
+    _plain("battery_pack_count", state_class=None),
+    _power("battery_power_w"),
+    _power("battery_charge_power_bms_w"),
+    _power("battery_discharge_power_bms_w"),
+    _power("battery_charge_power_max_w"),
+    _power("battery_discharge_power_max_w"),
     # Limits / settings (read-only for now)
     _percent("max_charge_soc", diag=True),
     _percent("min_discharge_soc", diag=True),
     _percent("backup_reserve_soc", diag=True),
-    _power("ac_charge_power_limit_w", enabled=False),
+    _percent("ac_always_on_min_soc", diag=True),
+    _plain("device_standby_min", UnitOfTime.MINUTES, state_class=None),
+    _plain("ac_standby_min", UnitOfTime.MINUTES, state_class=None),
+    _plain("dc_standby_min", UnitOfTime.MINUTES, state_class=None),
+    _plain("screen_timeout_s", UnitOfTime.SECONDS, state_class=None),
+    _power("ac_charge_power_limit_w"),
     # Totals
     _power("input_power_w"),
     _power("output_power_w"),
@@ -208,14 +217,30 @@ _BASE_SENSORS: list[EcoFlowSensorDescription] = [
     _power("ac_out_power_w"),
     _power("ac_hv_out_power_w"),
     _power("ac_lv_out_power_w"),
-    _power("ac_l1_1_out_power_w", enabled=False),
-    _power("ac_l1_2_out_power_w", enabled=False),
-    _power("ac_l2_1_out_power_w", enabled=False),
-    _power("ac_l2_2_out_power_w", enabled=False),
-    _power("ac_tt30_out_power_w", enabled=False),
-    _power("ac_l14_out_power_w", enabled=False),
-    _power("power_in_out_in_power_w", enabled=False),
-    _power("power_in_out_out_power_w", enabled=False),
+    _power("ac_l1_1_out_power_w"),
+    _power("ac_l1_2_out_power_w"),
+    _power("ac_l2_1_out_power_w"),
+    _power("ac_l2_2_out_power_w"),
+    _power("ac_tt30_out_power_w"),
+    _power("ac_l14_out_power_w"),
+    _power("power_in_out_in_power_w"),
+    _power("power_in_out_out_power_w"),
+    *[
+        d
+        for stem in (
+            "ac_l1_1_out",
+            "ac_l1_2_out",
+            "ac_l2_1_out",
+            "ac_l2_2_out",
+            "ac_tt30_out",
+            "ac_l14_out",
+            "power_in_out_out",
+            "power_in_out_in",
+        )
+        for d in (_voltage(f"{stem}_voltage_v"), _current(f"{stem}_current_a"))
+    ],
+    _power("power_in_out_charge_power_limit_w"),
+    _power("ac_charge_power_max_w"),
     _voltage("ac_in_voltage_v"),
     _current("ac_in_current_a"),
     _voltage("ac_out_voltage_v"),
@@ -235,24 +260,38 @@ _BASE_SENSORS: list[EcoFlowSensorDescription] = [
     _voltage("solar_lv_in_voltage_v"),
     _current("solar_lv_in_current_a"),
     # DC / USB
+    _power("dc_out_power_w"),
     _power("dc12v_out_power_w"),
-    _power("dc24v_out_power_w", enabled=False),
-    _power("dc_anderson_out_power_w", enabled=False),
-    _power("usb_a1_out_power_w", enabled=False),
-    _power("usb_a2_out_power_w", enabled=False),
-    _power("usb_qc1_out_power_w", enabled=False),
-    _power("usb_qc2_out_power_w", enabled=False),
-    _power("usb_c1_out_power_w", enabled=False),
-    _power("usb_c2_out_power_w", enabled=False),
-    _power("usb_c3_out_power_w", enabled=False),
+    _voltage("dc12v_out_voltage_v", precision=2),
+    _current("dc12v_out_current_a"),
+    _voltage("dc_anderson_out_voltage_v", precision=2),
+    _current("dc_anderson_out_current_a"),
+    _voltage("usb_a1_out_voltage_v", precision=2),
+    _current("usb_a1_out_current_a"),
+    _voltage("usb_a2_out_voltage_v", precision=2),
+    _current("usb_a2_out_current_a"),
+    _voltage("usb_c1_out_voltage_v", precision=2),
+    _current("usb_c1_out_current_a"),
+    _voltage("usb_c2_out_voltage_v", precision=2),
+    _current("usb_c2_out_current_a"),
+    _power("pr_out_power_w"),
+    _power("dc24v_out_power_w"),
+    _power("dc_anderson_out_power_w"),
+    _power("usb_a1_out_power_w"),
+    _power("usb_a2_out_power_w"),
+    _power("usb_qc1_out_power_w"),
+    _power("usb_qc2_out_power_w"),
+    _power("usb_c1_out_power_w"),
+    _power("usb_c2_out_power_w"),
+    _power("usb_c3_out_power_w"),
     # Temperatures
     _temp("inverter_temp_c"),
-    _temp("mppt_temp_c", enabled=False),
-    _temp("pcs_dc_temp_c", enabled=False),
-    _temp("pcs_ac_temp_c", enabled=False),
-    _temp("mppt_lv_temp_c", enabled=False),
-    _temp("mppt_hv_temp_c", enabled=False),
-    _temp("pd_temp_c", enabled=False),
+    _temp("mppt_temp_c"),
+    _temp("pcs_dc_temp_c"),
+    _temp("pcs_ac_temp_c"),
+    _temp("mppt_lv_temp_c"),
+    _temp("mppt_hv_temp_c"),
+    _temp("pd_temp_c"),
     _plain("fan_level"),
     # Error codes
     _plain("pd_error_code", state_class=None),
@@ -269,14 +308,14 @@ _BASE_SENSORS: list[EcoFlowSensorDescription] = [
     _energy("battery_charge_energy_kwh"),
     _energy("battery_discharge_energy_kwh"),
     # Energy counters kept by the device itself
-    _energy("ac_in_energy_lifetime_kwh", enabled=False),
-    _energy("ac_out_energy_lifetime_kwh", enabled=False),
-    _energy("solar_in_energy_lifetime_kwh", enabled=False),
-    _energy("dc12v_out_energy_lifetime_kwh", enabled=False),
-    _energy("usb_c_out_energy_lifetime_kwh", enabled=False),
-    _energy("usb_a_out_energy_lifetime_kwh", enabled=False),
-    _energy("battery_charge_energy_lifetime_kwh", enabled=False),
-    _energy("battery_discharge_energy_lifetime_kwh", enabled=False),
+    _energy("ac_in_energy_lifetime_kwh"),
+    _energy("ac_out_energy_lifetime_kwh"),
+    _energy("solar_in_energy_lifetime_kwh"),
+    _energy("dc12v_out_energy_lifetime_kwh"),
+    _energy("usb_c_out_energy_lifetime_kwh"),
+    _energy("usb_a_out_energy_lifetime_kwh"),
+    _energy("battery_charge_energy_lifetime_kwh"),
+    _energy("battery_discharge_energy_lifetime_kwh"),
 ]
 
 
@@ -295,7 +334,7 @@ def _indexed(
 _EXTRA_TEMPLATES: list[EcoFlowSensorDescription] = [
     _percent("soc", battery=True),
     _percent("soh", diag=True),
-    _plain("cycles", state_class=SensorStateClass.TOTAL_INCREASING, enabled=True),
+    _plain("cycles", state_class=SensorStateClass.TOTAL_INCREASING),
     _temp("temp_c"),
     _voltage("voltage_v", precision=2),
     _current("current_a"),
@@ -305,22 +344,22 @@ _EXTRA_TEMPLATES: list[EcoFlowSensorDescription] = [
     _plain("remain_capacity_mah", "mAh"),
     _plain("full_capacity_mah", "mAh"),
     _plain("design_capacity_mah", "mAh"),
-    _temp("max_cell_temp_c", enabled=False),
-    _temp("min_cell_temp_c", enabled=False),
+    _temp("max_cell_temp_c"),
+    _temp("min_cell_temp_c"),
     _voltage("max_cell_voltage_v", precision=3),
     _voltage("min_cell_voltage_v", precision=3),
     _plain("error_code", state_class=None),
-    _energy("battery_charge_energy_lifetime_kwh", enabled=False),
-    _energy("battery_discharge_energy_lifetime_kwh", enabled=False),
+    _energy("battery_charge_energy_lifetime_kwh"),
+    _energy("battery_discharge_energy_lifetime_kwh"),
 ]
 
 # Battery packs (Delta Pro Ultra): pack{n}_<key>
 _PACK_TEMPLATES: list[EcoFlowSensorDescription] = [
     _percent("soc", battery=True),
     _power("power_w"),
-    _plain("remain_energy_wh", UnitOfEnergy.WATT_HOUR, enabled=True),
+    _plain("remain_energy_wh", UnitOfEnergy.WATT_HOUR),
     _temp("temp_c"),
-    _minutes("remaining_time_min", enabled=False),
+    _minutes("remaining_time_min"),
     _state("chg_dsg_state"),
 ]
 
@@ -360,6 +399,12 @@ BINARY_SENSORS: dict[str, BinarySensorEntityDescription] = {
             key="backup_reserve_enabled",
             translation_key="backup_reserve_enabled",
             entity_category=DIAG,
+        ),
+        BinarySensorEntityDescription(
+            key="ac_always_on_enabled", translation_key="ac_always_on_enabled", entity_category=DIAG
+        ),
+        BinarySensorEntityDescription(
+            key="solar_only_enabled", translation_key="solar_only_enabled", entity_category=DIAG
         ),
         BinarySensorEntityDescription(
             key="ac_in_connected",

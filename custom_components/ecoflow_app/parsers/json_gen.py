@@ -18,6 +18,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from . import raw
+
 # typeCode -> dotted module prefix used by the app's quota map.
 _TYPECODE_PREFIX: dict[str, str] = {
     "pdStatus": "pd",
@@ -174,9 +176,11 @@ def _number(value: Any) -> float | None:
 def parse(quota: dict[str, Any], *, solar_voltage_divisor: float = 10.0) -> dict[str, Any]:
     """Map a dotted quota map onto canonical sensor keys."""
     out: dict[str, Any] = {}
-    for key, raw in quota.items():
-        value = _number(raw)
+    unmapped: dict[str, Any] = {}
+    for key, raw_value in quota.items():
+        value = _number(raw_value)
         if value is None:
+            unmapped[key.replace(".", "_")] = raw_value
             continue
 
         if key == "mppt.inVol":
@@ -194,6 +198,8 @@ def parse(quota: dict[str, Any], *, solar_voltage_divisor: float = 10.0) -> dict
         if index is not None and field in _SLAVE_FIELDS:
             dest, divisor = _SLAVE_FIELDS[field]
             out[f"extra{index}_{dest}"] = value / divisor if divisor else value
+            continue
+        unmapped[key.replace(".", "_")] = raw_value
 
     if "chg_dsg_state" in out:
         state = _CHG_DSG_STATE.get(int(out["chg_dsg_state"]))
@@ -218,4 +224,10 @@ def parse(quota: dict[str, Any], *, solar_voltage_divisor: float = 10.0) -> dict
         if out.get(f"extra{index}_voltage_v") == 0 and not out.get(f"extra{index}_soc"):
             for key in [k for k in out if k.startswith(f"extra{index}_")]:
                 del out[key]
+            for prefix, slave_index in _SLAVE_PREFIXES.items():
+                if slave_index == index:
+                    for key in [k for k in unmapped if k.startswith(f"{prefix}_")]:
+                        del unmapped[key]
+
+    out.update(raw.flatten(unmapped))
     return out

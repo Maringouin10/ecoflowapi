@@ -14,6 +14,7 @@ pytest.importorskip("pytest_homeassistant_custom_component")
 from homeassistant import config_entries  # noqa: E402
 from homeassistant.core import HomeAssistant  # noqa: E402
 from homeassistant.data_entry_flow import FlowResultType  # noqa: E402
+from homeassistant.helpers import entity_registry as er  # noqa: E402
 from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
 
 from custom_components.ecoflow_app.api import EcoFlowAuthError  # noqa: E402
@@ -127,6 +128,23 @@ async def test_messages_create_entities(hass: HomeAssistant) -> None:
         },
     )
     entry.add_to_hass(hass)
+    # An entity an earlier version disabled by default comes back enabled;
+    # one the user disabled stays disabled.
+    registry = er.async_get(hass)
+    registry.async_get_or_create(
+        "sensor",
+        DOMAIN,
+        "P351ZAB0000001_usb_c1_out_power_w",
+        config_entry=entry,
+        disabled_by=er.RegistryEntryDisabler.INTEGRATION,
+    )
+    registry.async_get_or_create(
+        "sensor",
+        DOMAIN,
+        "P351ZAB0000001_usb_c2_out_power_w",
+        config_entry=entry,
+        disabled_by=er.RegistryEntryDisabler.USER,
+    )
 
     async def creds(self) -> dict:
         return {"account": "a", "password": "b", "host": None}
@@ -156,5 +174,16 @@ async def test_messages_create_entities(hass: HomeAssistant) -> None:
         assert states["sensor.van_total_output_power"] == "42.0"
         assert states["sensor.van_state_of_charge"] == "77.0"
         assert hass.states.get("binary_sensor.garage_online").state == "on"
+        # Every decoded field exists, the unnamed ones as raw sensors.
+        assert states["sensor.garage_cell_vol_1"] == "3353"
+        assert hass.states.get("sensor.garage_cell_vol_1").attributes["unit_of_measurement"] == "mV"
+        assert states["sensor.garage_ac_output_voltage"] == "230.1"
+
+        def disabled_by(unique_id: str):
+            entity_id = registry.async_get_entity_id("sensor", DOMAIN, unique_id)
+            return registry.async_get(entity_id).disabled_by
+
+        assert disabled_by("P351ZAB0000001_usb_c1_out_power_w") is None
+        assert disabled_by("P351ZAB0000001_usb_c2_out_power_w") is er.RegistryEntryDisabler.USER
 
         assert await hass.config_entries.async_unload(entry.entry_id)

@@ -243,9 +243,6 @@
       "dc24v_out_power_w": {
         "name": "24 V output power"
       },
-      "dc_anderson_out_power_w": {
-        "name": "Anderson output power"
-      },
       "usb_a1_out_power_w": {
         "name": "USB-A 1 power"
       },
@@ -266,6 +263,132 @@
       },
       "usb_c3_out_power_w": {
         "name": "USB-C 3 power"
+      },
+      "dc_out_power_w": {
+        "name": "DC output power (total)"
+      },
+      "dc_anderson_out_power_w": {
+        "name": "DC output power (Anderson)"
+      },
+      "dc_anderson_out_voltage_v": {
+        "name": "DC output voltage (Anderson)"
+      },
+      "dc_anderson_out_current_a": {
+        "name": "DC output current (Anderson)"
+      },
+      "dc12v_out_voltage_v": {
+        "name": "12 V output voltage"
+      },
+      "dc12v_out_current_a": {
+        "name": "12 V output current"
+      },
+      "usb_a1_out_voltage_v": {
+        "name": "USB-A 1 voltage"
+      },
+      "usb_a1_out_current_a": {
+        "name": "USB-A 1 current"
+      },
+      "usb_a2_out_voltage_v": {
+        "name": "USB-A 2 voltage"
+      },
+      "usb_a2_out_current_a": {
+        "name": "USB-A 2 current"
+      },
+      "usb_c1_out_voltage_v": {
+        "name": "USB-C 1 voltage"
+      },
+      "usb_c1_out_current_a": {
+        "name": "USB-C 1 current"
+      },
+      "usb_c2_out_voltage_v": {
+        "name": "USB-C 2 voltage"
+      },
+      "usb_c2_out_current_a": {
+        "name": "USB-C 2 current"
+      },
+      "pr_out_power_w": {
+        "name": "PR output power"
+      },
+      "ac_l1_1_out_voltage_v": {
+        "name": "AC outlet L1-1 voltage"
+      },
+      "ac_l1_1_out_current_a": {
+        "name": "AC outlet L1-1 current"
+      },
+      "ac_l1_2_out_voltage_v": {
+        "name": "AC outlet L1-2 voltage"
+      },
+      "ac_l1_2_out_current_a": {
+        "name": "AC outlet L1-2 current"
+      },
+      "ac_l2_1_out_voltage_v": {
+        "name": "AC outlet L2-1 voltage"
+      },
+      "ac_l2_1_out_current_a": {
+        "name": "AC outlet L2-1 current"
+      },
+      "ac_l2_2_out_voltage_v": {
+        "name": "AC outlet L2-2 voltage"
+      },
+      "ac_l2_2_out_current_a": {
+        "name": "AC outlet L2-2 current"
+      },
+      "ac_tt30_out_voltage_v": {
+        "name": "AC TT-30 outlet voltage"
+      },
+      "ac_tt30_out_current_a": {
+        "name": "AC TT-30 outlet current"
+      },
+      "ac_l14_out_voltage_v": {
+        "name": "AC L14-30 outlet voltage"
+      },
+      "ac_l14_out_current_a": {
+        "name": "AC L14-30 outlet current"
+      },
+      "power_in_out_out_voltage_v": {
+        "name": "Power In/Out output voltage"
+      },
+      "power_in_out_out_current_a": {
+        "name": "Power In/Out output current"
+      },
+      "power_in_out_in_voltage_v": {
+        "name": "Power In/Out input voltage"
+      },
+      "power_in_out_in_current_a": {
+        "name": "Power In/Out input current"
+      },
+      "power_in_out_charge_power_limit_w": {
+        "name": "Power In/Out charge power setting"
+      },
+      "ac_charge_power_max_w": {
+        "name": "AC charge power maximum"
+      },
+      "battery_charge_power_bms_w": {
+        "name": "Battery charge power (BMS)"
+      },
+      "battery_discharge_power_bms_w": {
+        "name": "Battery discharge power (BMS)"
+      },
+      "battery_charge_power_max_w": {
+        "name": "Battery charge power maximum"
+      },
+      "battery_discharge_power_max_w": {
+        "name": "Battery discharge power maximum"
+      },
+      "ac_always_on_min_soc": {
+        "name": "AC always-on minimum charge"
+      },
+      "device_standby_min": {
+        "name": "Device standby timeout"
+      },
+      "ac_standby_min": {
+        "name": "AC standby timeout"
+      },
+      "dc_standby_min": {
+        "name": "DC standby timeout"
+      },
+      "screen_timeout_s": {
+        "name": "Screen timeout"
       },
       "inverter_temp_c": {
         "name": "Inverter temperature"
@@ -453,6 +576,12 @@
       },
       "ac_in_connected": {
         "name": "AC input connected"
+      },
+      "ac_always_on_enabled": {
+        "name": "AC always on"
+      },
+      "solar_only_enabled": {
+        "name": "Solar only charging"
       }
     }
   }

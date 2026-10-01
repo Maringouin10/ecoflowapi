@@ -243,9 +243,6 @@
       "dc24v_out_power_w": {
         "name": "Puissance sortie 24 V"
       },
-      "dc_anderson_out_power_w": {
-        "name": "Puissance sortie Anderson"
-      },
       "usb_a1_out_power_w": {
         "name": "Puissance USB-A 1"
       },
@@ -266,6 +263,132 @@
       },
       "usb_c3_out_power_w": {
         "name": "Puissance USB-C 3"
+      },
+      "dc_out_power_w": {
+        "name": "Puissance sortie DC (totale)"
+      },
+      "dc_anderson_out_power_w": {
+        "name": "Puissance sortie DC (Anderson)"
+      },
+      "dc_anderson_out_voltage_v": {
+        "name": "Tension sortie DC (Anderson)"
+      },
+      "dc_anderson_out_current_a": {
+        "name": "Courant sortie DC (Anderson)"
+      },
+      "dc12v_out_voltage_v": {
+        "name": "Tension sortie 12 V"
+      },
+      "dc12v_out_current_a": {
+        "name": "Courant sortie 12 V"
+      },
+      "usb_a1_out_voltage_v": {
+        "name": "Tension USB-A 1"
+      },
+      "usb_a1_out_current_a": {
+        "name": "Courant USB-A 1"
+      },
+      "usb_a2_out_voltage_v": {
+        "name": "Tension USB-A 2"
+      },
+      "usb_a2_out_current_a": {
+        "name": "Courant USB-A 2"
+      },
+      "usb_c1_out_voltage_v": {
+        "name": "Tension USB-C 1"
+      },
+      "usb_c1_out_current_a": {
+        "name": "Courant USB-C 1"
+      },
+      "usb_c2_out_voltage_v": {
+        "name": "Tension USB-C 2"
+      },
+      "usb_c2_out_current_a": {
+        "name": "Courant USB-C 2"
+      },
+      "pr_out_power_w": {
+        "name": "Puissance sortie PR"
+      },
+      "ac_l1_1_out_voltage_v": {
+        "name": "Tension prise AC L1-1"
+      },
+      "ac_l1_1_out_current_a": {
+        "name": "Courant prise AC L1-1"
+      },
+      "ac_l1_2_out_voltage_v": {
+        "name": "Tension prise AC L1-2"
+      },
+      "ac_l1_2_out_current_a": {
+        "name": "Courant prise AC L1-2"
+      },
+      "ac_l2_1_out_voltage_v": {
+        "name": "Tension prise AC L2-1"
+      },
+      "ac_l2_1_out_current_a": {
+        "name": "Courant prise AC L2-1"
+      },
+      "ac_l2_2_out_voltage_v": {
+        "name": "Tension prise AC L2-2"
+      },
+      "ac_l2_2_out_current_a": {
+        "name": "Courant prise AC L2-2"
+      },
+      "ac_tt30_out_voltage_v": {
+        "name": "Tension prise AC TT-30"
+      },
+      "ac_tt30_out_current_a": {
+        "name": "Courant prise AC TT-30"
+      },
+      "ac_l14_out_voltage_v": {
+        "name": "Tension prise AC L14-30"
+      },
+      "ac_l14_out_current_a": {
+        "name": "Courant prise AC L14-30"
+      },
+      "power_in_out_out_voltage_v": {
+        "name": "Tension sortie Power In/Out"
+      },
+      "power_in_out_out_current_a": {
+        "name": "Courant sortie Power In/Out"
+      },
+      "power_in_out_in_voltage_v": {
+        "name": "Tension entrée Power In/Out"
+      },
+      "power_in_out_in_current_a": {
+        "name": "Courant entrée Power In/Out"
+      },
+      "power_in_out_charge_power_limit_w": {
+        "name": "Puissance de charge Power In/Out réglée"
+      },
+      "ac_charge_power_max_w": {
+        "name": "Puissance de charge AC maximale"
+      },
+      "battery_charge_power_bms_w": {
+        "name": "Puissance de charge (BMS)"
+      },
+      "battery_discharge_power_bms_w": {
+        "name": "Puissance de décharge (BMS)"
+      },
+      "battery_charge_power_max_w": {
+        "name": "Puissance de charge max batterie"
+      },
+      "battery_discharge_power_max_w": {
+        "name": "Puissance de décharge max batterie"
+      },
+      "ac_always_on_min_soc": {
+        "name": "Niveau min. AC toujours actif"
+      },
+      "device_standby_min": {
+        "name": "Mise en veille appareil"
+      },
+      "ac_standby_min": {
+        "name": "Mise en veille AC"
+      },
+      "dc_standby_min": {
+        "name": "Mise en veille DC"
+      },
+      "screen_timeout_s": {
+        "name": "Extinction écran"
       },
       "inverter_temp_c": {
         "name": "Température onduleur"
@@ -453,6 +576,12 @@
       },
       "ac_in_connected": {
         "name": "Entrée AC branchée"
+      },
+      "ac_always_on_enabled": {
+        "name": "AC toujours actif"
+      },
+      "solar_only_enabled": {
+        "name": "Charge solaire uniquement"
       }
     }
   }

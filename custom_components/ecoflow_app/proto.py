@@ -175,7 +175,12 @@ def decode(buf: bytes, schema: dict[int, Field]) -> dict[str, Any]:
         spec = schema.get(number)
         if spec is None:
             continue
-        values = _decode_value(spec, wire, raw)
+        try:
+            values = _decode_value(spec, wire, raw)
+        except DecodeError:
+            # A field whose wire type does not match the published schema
+            # is skipped; the rest of the message is still good.
+            continue
         if spec.repeated:
             out.setdefault(spec.name, []).extend(values)
         elif values:

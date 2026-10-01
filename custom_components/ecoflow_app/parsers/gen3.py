@@ -5,6 +5,8 @@ Frames used:
 * ``cmd_func=254 cmd_id=21`` DisplayPropertyUpload - main status. Sent in
   full every couple of minutes and incrementally (changed fields only) every
   few seconds, so the caller merges results instead of replacing them.
+* ``cmd_func=254 cmd_id=22`` RuntimePropertyUpload - measured voltages,
+  currents, temperatures, firmware versions.
 * ``cmd_func=32 cmd_id=2``  CMS heartbeat - only the float SoC is used.
 * ``cmd_func=32 cmd_id=50`` BMS heartbeat - one per battery pack: ``num`` 0
   is the built-in battery, 1.. are extra batteries.
@@ -13,98 +15,25 @@ Field numbers: River 3 and Delta 3 share the same numbering (verified field
 by field between the two .proto files of tolwi/hassio-ecoflow-cloud); the
 Delta Pro 3 additions (high/low voltage PV, extra-battery ports) do not
 collide with it, so one schema serves the whole generation. PV2 and Type-C 3
-come from shuette42/ecoflow-energy-ha (MIT).
+come from shuette42/ecoflow-energy-ha (MIT). Every other known field is
+exposed as a raw value (see ``raw.py`` and ``schemas.py``).
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-from ..proto import BOOL, FLOAT, INT, MSG, STRING, Field, decode
+from ..proto import FLOAT, MSG, Field, decode
+from . import raw
+from .schemas import GEN3_BMS, GEN3_DISPLAY, GEN3_RUNTIME
 
-_STAT_ITEM = {1: Field("object"), 2: Field("content")}
-_STAT_LIST = {1: Field("items", MSG, _STAT_ITEM, repeated=True)}
+DISPLAY_SCHEMA = GEN3_DISPLAY
+RUNTIME_SCHEMA = GEN3_RUNTIME
+BMS_HEARTBEAT_SCHEMA = GEN3_BMS
 
-DISPLAY_SCHEMA: dict[int, Field] = {
-    1: Field("errcode"),
-    3: Field("pow_in_sum_w", FLOAT),
-    4: Field("pow_out_sum_w", FLOAT),
-    7: Field("energy_backup_en"),
-    8: Field("energy_backup_start_soc"),
-    9: Field("pow_get_qcusb1", FLOAT),
-    10: Field("pow_get_qcusb2", FLOAT),
-    11: Field("pow_get_typec1", FLOAT),
-    12: Field("pow_get_typec2", FLOAT),
-    25: Field("xboost_en"),
-    35: Field("pow_get_pv_h", FLOAT),
-    36: Field("pow_get_pv_l", FLOAT),
-    37: Field("pow_get_12v", FLOAT),
-    38: Field("pow_get_24v", FLOAT),
-    54: Field("pow_get_ac_in", FLOAT),
-    55: Field("pow_get_ac_hv_out", FLOAT),
-    56: Field("pow_get_ac_lv_out", FLOAT),
-    58: Field("pow_get_5p8", FLOAT),
-    61: Field("plug_in_info_ac_in_flag"),
-    62: Field("plug_in_info_ac_in_feq"),
-    70: Field("pow_get_pv2", FLOAT),
-    74: Field("dc_out_open"),
-    76: Field("cfg_ac_out_open"),
-    100: Field("pow_get_typec3", FLOAT),
-    158: Field("pow_get_bms", FLOAT),
-    159: Field("pow_get_4p8_1", FLOAT),
-    160: Field("pow_get_4p8_2", FLOAT),
-    195: Field("en_beep", BOOL),
-    209: Field("plug_in_info_ac_in_chg_pow_max"),
-    211: Field("ac_out_freq"),
-    242: Field("bms_batt_soc", FLOAT),
-    243: Field("bms_batt_soh", FLOAT),
-    248: Field("bms_design_cap"),
-    254: Field("bms_dsg_rem_time"),
-    255: Field("bms_chg_rem_time"),
-    258: Field("bms_min_cell_temp", INT),
-    259: Field("bms_max_cell_temp", INT),
-    260: Field("bms_min_mos_temp", INT),
-    261: Field("bms_max_mos_temp", INT),
-    262: Field("cms_batt_soc", FLOAT),
-    263: Field("cms_batt_soh", FLOAT),
-    268: Field("cms_dsg_rem_time"),
-    269: Field("cms_chg_rem_time"),
-    270: Field("cms_max_chg_soc"),
-    271: Field("cms_min_dsg_soc"),
-    281: Field("bms_chg_dsg_state"),
-    282: Field("cms_chg_dsg_state"),
-    361: Field("pow_get_pv", FLOAT),
-    368: Field("pow_get_ac_out", FLOAT),
-    461: Field("backup_reverse_soc"),
-    463: Field("display_statistics_sum", MSG, _STAT_LIST),
-}
-
+# The two public definitions of this frame disagree beyond the float SoC.
 CMS_HEARTBEAT_SCHEMA: dict[int, Field] = {
     1: Field("v1p0", MSG, {15: Field("f32_lcd_show_soc", FLOAT)}),
-}
-
-BMS_HEARTBEAT_SCHEMA: dict[int, Field] = {
-    1: Field("num"),
-    6: Field("soc"),
-    7: Field("vol"),
-    8: Field("amp", INT),
-    9: Field("temp", INT),
-    11: Field("design_cap"),
-    12: Field("remain_cap"),
-    13: Field("full_cap"),
-    14: Field("cycles"),
-    15: Field("soh"),
-    16: Field("max_cell_vol"),
-    17: Field("min_cell_vol"),
-    18: Field("max_cell_temp", INT),
-    19: Field("min_cell_temp", INT),
-    20: Field("max_mos_temp", INT),
-    25: Field("f32_show_soc", FLOAT),
-    26: Field("input_watts"),
-    27: Field("output_watts"),
-    39: Field("bms_sn", STRING),
-    79: Field("accu_chg_energy"),
-    80: Field("accu_dsg_energy"),
 }
 
 # Port powers: absolute value, the direction is in the name. Some units report
@@ -173,6 +102,44 @@ _STATISTICS: dict[int, str] = {
 }
 
 
+# Source fields that already feed a named sensor (not repeated as raw).
+_DISPLAY_USED = {
+    *_POWER_FIELDS,
+    *_SIGNED_POWER_FIELDS,
+    *_PLAIN_FIELDS,
+    *_BOOL_FIELDS,
+    "bms_batt_soh",
+    "cms_batt_soh",
+    "backup_reverse_soc",
+    "energy_backup_start_soc",
+    "cms_chg_dsg_state",
+    "bms_chg_dsg_state",
+    "display_statistics_sum",
+}
+_BMS_USED = {
+    "num",
+    "vol",
+    "amp",
+    "temp",
+    "cycles",
+    "remain_cap",
+    "full_cap",
+    "design_cap",
+    "max_cell_vol",
+    "min_cell_vol",
+    "max_cell_temp",
+    "min_cell_temp",
+    "max_mos_temp",
+    "f32_show_soc",
+    "soc",
+    "soh",
+    "input_watts",
+    "output_watts",
+    "accu_chg_energy",
+    "accu_dsg_energy",
+}
+
+
 def _is_number(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
@@ -216,11 +183,37 @@ def parse_display(pdata: bytes) -> dict[str, Any]:
 
     stats = fields.get("display_statistics_sum")
     if isinstance(stats, dict):
-        for item in stats.get("items", []):
-            key = _STATISTICS.get(item.get("object"))
-            content = item.get("content")
+        for item in stats.get("list_info", []):
+            key = _STATISTICS.get(item.get("statistics_object"))
+            content = item.get("statistics_content")
             if key and _is_number(content) and content > 0:
                 out[key] = round(content / 1000.0, 3)
+
+    out.update(raw.flatten(fields, skip=_DISPLAY_USED))
+    return out
+
+
+# Runtime frame (254/22): measured voltages, currents and temperatures.
+_RUNTIME_FIELDS: dict[str, tuple[str, int]] = {
+    "temp_pcs_dc": ("pcs_dc_temp_c", 1),
+    "temp_pcs_ac": ("pcs_ac_temp_c", 1),
+    "temp_pv": ("mppt_temp_c", 1),
+    "plug_in_info_ac_out_vol": ("ac_out_voltage_v", 1),
+    "plug_in_info_ac_in_vol": ("ac_in_voltage_v", 1),
+    "plug_in_info_pv_vol": ("solar_in_voltage_v", 1),
+    "plug_in_info_12v_vol": ("dc12v_out_voltage_v", 2),
+    "plug_in_info_12v_amp": ("dc12v_out_current_a", 2),
+}
+
+
+def parse_runtime(pdata: bytes) -> dict[str, Any]:
+    """Parse a RuntimePropertyUpload (254/22)."""
+    fields = decode(pdata, RUNTIME_SCHEMA)
+    out: dict[str, Any] = {}
+    for src, (dest, digits) in _RUNTIME_FIELDS.items():
+        if _is_number(fields.get(src)):
+            out[dest] = round(float(fields[src]), digits)
+    out.update(raw.flatten(fields, skip=_RUNTIME_FIELDS))
     return out
 
 
@@ -256,6 +249,7 @@ def parse_bms_heartbeat(pdata: bytes) -> dict[str, Any]:
     put("min_cell_voltage_v", fields.get("min_cell_vol"), 1000.0)
     put("max_cell_temp_c", fields.get("max_cell_temp"))
     put("min_cell_temp_c", fields.get("min_cell_temp"))
+    put("max_mos_temp_c", fields.get("max_mos_temp"))
     if prefix:
         # The built-in battery's SoC/SoH come from the status frame.
         soc = fields.get("f32_show_soc", fields.get("soc"))
@@ -273,6 +267,8 @@ def parse_bms_heartbeat(pdata: bytes) -> dict[str, Any]:
         value = fields.get(src)
         if _is_number(value) and value > 0:
             out[f"{prefix}{key}"] = round(value / 1000.0, 3)
+
+    out.update(raw.flatten(fields, skip=_BMS_USED, prefix=prefix))
     return out
 
 
@@ -280,6 +276,8 @@ def parse_frame(cmd_func: int, cmd_id: int, pdata: bytes) -> dict[str, Any] | No
     """Return parsed values, or None when the frame is not one we read."""
     if cmd_func == 254 and cmd_id == 21:
         return parse_display(pdata)
+    if cmd_func == 254 and cmd_id == 22:
+        return parse_runtime(pdata)
     if cmd_func == 32 and cmd_id == 2:
         return parse_cms_heartbeat(pdata)
     if cmd_func == 32 and cmd_id == 50:
