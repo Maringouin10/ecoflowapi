@@ -1,0 +1,459 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Compte EcoFlow",
+        "description": "Connectez-vous avec l'e-mail et le mot de passe de l'application EcoFlow. Aucune clé développeur n'est nécessaire.",
+        "data": {
+          "email": "E-mail",
+          "password": "Mot de passe"
+        }
+      },
+      "devices": {
+        "title": "Batteries",
+        "description": "Choisissez les appareils à ajouter. Pris en charge : DELTA 2, DELTA 3, DELTA 3 Ultra, batterie supplémentaire DELTA 2, DELTA Pro Ultra, RIVER 2, RIVER 3.",
+        "data": {
+          "devices": "Appareils"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Mot de passe EcoFlow",
+        "description": "EcoFlow a refusé le mot de passe de {email}. Saisissez le mot de passe actuel.",
+        "data": {
+          "password": "Mot de passe"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "E-mail ou mot de passe refusé par EcoFlow.",
+      "cannot_connect": "Impossible de joindre le cloud EcoFlow.",
+      "no_selection": "Sélectionnez au moins un appareil."
+    },
+    "abort": {
+      "already_configured": "Ce compte EcoFlow est déjà configuré.",
+      "no_devices": "Aucun appareil n'est associé à ce compte EcoFlow.",
+      "reauth_successful": "Mot de passe mis à jour."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Appareils",
+        "description": "Appareils inclus dans Home Assistant.",
+        "data": {
+          "devices": "Appareils"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossible de rafraîchir la liste ; la liste enregistrée est affichée.",
+      "no_selection": "Sélectionnez au moins un appareil."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "soc": {
+        "name": "Niveau de charge"
+      },
+      "main_battery_soc": {
+        "name": "Niveau batterie principale"
+      },
+      "soh": {
+        "name": "État de santé"
+      },
+      "chg_dsg_state": {
+        "name": "État de la batterie",
+        "state": {
+          "idle": "Au repos",
+          "charging": "En charge",
+          "discharging": "En décharge"
+        }
+      },
+      "charge_remaining_min": {
+        "name": "Temps avant charge complète"
+      },
+      "discharge_remaining_min": {
+        "name": "Autonomie restante"
+      },
+      "remaining_time_min": {
+        "name": "Temps restant"
+      },
+      "cycles": {
+        "name": "Cycles de charge"
+      },
+      "battery_temp_c": {
+        "name": "Température batterie"
+      },
+      "min_cell_temp_c": {
+        "name": "Température cellule min"
+      },
+      "max_cell_temp_c": {
+        "name": "Température cellule max"
+      },
+      "max_mos_temp_c": {
+        "name": "Température MOSFET"
+      },
+      "battery_voltage_v": {
+        "name": "Tension batterie"
+      },
+      "battery_current_a": {
+        "name": "Courant batterie"
+      },
+      "min_cell_voltage_v": {
+        "name": "Tension cellule min"
+      },
+      "max_cell_voltage_v": {
+        "name": "Tension cellule max"
+      },
+      "remain_capacity_mah": {
+        "name": "Capacité restante"
+      },
+      "full_capacity_mah": {
+        "name": "Capacité pleine charge"
+      },
+      "design_capacity_mah": {
+        "name": "Capacité nominale"
+      },
+      "remain_capacity_wh": {
+        "name": "Énergie restante"
+      },
+      "full_capacity_wh": {
+        "name": "Capacité totale"
+      },
+      "battery_pack_count": {
+        "name": "Packs batterie"
+      },
+      "battery_power_w": {
+        "name": "Puissance batterie"
+      },
+      "max_charge_soc": {
+        "name": "Limite de charge"
+      },
+      "min_discharge_soc": {
+        "name": "Limite de décharge"
+      },
+      "backup_reserve_soc": {
+        "name": "Réserve de secours"
+      },
+      "ac_charge_power_limit_w": {
+        "name": "Puissance de charge AC réglée"
+      },
+      "input_power_w": {
+        "name": "Puissance d'entrée totale"
+      },
+      "output_power_w": {
+        "name": "Puissance de sortie totale"
+      },
+      "battery_charge_power_w": {
+        "name": "Puissance de charge batterie"
+      },
+      "battery_discharge_power_w": {
+        "name": "Puissance de décharge batterie"
+      },
+      "ac_in_power_w": {
+        "name": "Puissance entrée AC"
+      },
+      "ac_out_power_w": {
+        "name": "Puissance sortie AC"
+      },
+      "ac_hv_out_power_w": {
+        "name": "Puissance sortie AC (haute tension)"
+      },
+      "ac_lv_out_power_w": {
+        "name": "Puissance sortie AC (basse tension)"
+      },
+      "ac_l1_1_out_power_w": {
+        "name": "Puissance prise AC L1-1"
+      },
+      "ac_l1_2_out_power_w": {
+        "name": "Puissance prise AC L1-2"
+      },
+      "ac_l2_1_out_power_w": {
+        "name": "Puissance prise AC L2-1"
+      },
+      "ac_l2_2_out_power_w": {
+        "name": "Puissance prise AC L2-2"
+      },
+      "ac_tt30_out_power_w": {
+        "name": "Puissance prise AC TT-30"
+      },
+      "ac_l14_out_power_w": {
+        "name": "Puissance prise AC L14-30"
+      },
+      "power_in_out_in_power_w": {
+        "name": "Puissance entrée Power In/Out"
+      },
+      "power_in_out_out_power_w": {
+        "name": "Puissance sortie Power In/Out"
+      },
+      "ac_in_voltage_v": {
+        "name": "Tension entrée AC"
+      },
+      "ac_in_current_a": {
+        "name": "Courant entrée AC"
+      },
+      "ac_out_voltage_v": {
+        "name": "Tension sortie AC"
+      },
+      "ac_out_current_a": {
+        "name": "Courant sortie AC"
+      },
+      "ac_in_freq_hz": {
+        "name": "Fréquence entrée AC"
+      },
+      "ac_out_freq_hz": {
+        "name": "Fréquence sortie AC"
+      },
+      "solar_in_power_w": {
+        "name": "Puissance solaire"
+      },
+      "solar2_in_power_w": {
+        "name": "Puissance solaire 2"
+      },
+      "solar_hv_in_power_w": {
+        "name": "Puissance solaire (haute tension)"
+      },
+      "solar_lv_in_power_w": {
+        "name": "Puissance solaire (basse tension)"
+      },
+      "solar_total_power_w": {
+        "name": "Puissance solaire totale"
+      },
+      "solar_in_voltage_v": {
+        "name": "Tension solaire"
+      },
+      "solar_in_current_a": {
+        "name": "Courant solaire"
+      },
+      "solar_hv_in_voltage_v": {
+        "name": "Tension solaire (haute tension)"
+      },
+      "solar_hv_in_current_a": {
+        "name": "Courant solaire (haute tension)"
+      },
+      "solar_lv_in_voltage_v": {
+        "name": "Tension solaire (basse tension)"
+      },
+      "solar_lv_in_current_a": {
+        "name": "Courant solaire (basse tension)"
+      },
+      "dc12v_out_power_w": {
+        "name": "Puissance sortie 12 V"
+      },
+      "dc24v_out_power_w": {
+        "name": "Puissance sortie 24 V"
+      },
+      "dc_anderson_out_power_w": {
+        "name": "Puissance sortie Anderson"
+      },
+      "usb_a1_out_power_w": {
+        "name": "Puissance USB-A 1"
+      },
+      "usb_a2_out_power_w": {
+        "name": "Puissance USB-A 2"
+      },
+      "usb_qc1_out_power_w": {
+        "name": "Puissance USB-A charge rapide 1"
+      },
+      "usb_qc2_out_power_w": {
+        "name": "Puissance USB-A charge rapide 2"
+      },
+      "usb_c1_out_power_w": {
+        "name": "Puissance USB-C 1"
+      },
+      "usb_c2_out_power_w": {
+        "name": "Puissance USB-C 2"
+      },
+      "usb_c3_out_power_w": {
+        "name": "Puissance USB-C 3"
+      },
+      "inverter_temp_c": {
+        "name": "Température onduleur"
+      },
+      "mppt_temp_c": {
+        "name": "Température chargeur solaire"
+      },
+      "pcs_dc_temp_c": {
+        "name": "Température PCS DC"
+      },
+      "pcs_ac_temp_c": {
+        "name": "Température PCS AC"
+      },
+      "mppt_lv_temp_c": {
+        "name": "Température chargeur solaire (basse tension)"
+      },
+      "mppt_hv_temp_c": {
+        "name": "Température chargeur solaire (haute tension)"
+      },
+      "pd_temp_c": {
+        "name": "Température distribution"
+      },
+      "fan_level": {
+        "name": "Niveau ventilateur"
+      },
+      "pd_error_code": {
+        "name": "Code erreur distribution"
+      },
+      "inverter_error_code": {
+        "name": "Code erreur onduleur"
+      },
+      "mppt_error_code": {
+        "name": "Code erreur chargeur solaire"
+      },
+      "bms_error_code": {
+        "name": "Code erreur BMS"
+      },
+      "system_error_code": {
+        "name": "Code erreur système"
+      },
+      "input_energy_kwh": {
+        "name": "Énergie entrée totale"
+      },
+      "output_energy_kwh": {
+        "name": "Énergie sortie totale"
+      },
+      "ac_in_energy_kwh": {
+        "name": "Énergie entrée AC"
+      },
+      "ac_out_energy_kwh": {
+        "name": "Énergie sortie AC"
+      },
+      "solar_in_energy_kwh": {
+        "name": "Énergie solaire"
+      },
+      "battery_charge_energy_kwh": {
+        "name": "Énergie chargée batterie"
+      },
+      "battery_discharge_energy_kwh": {
+        "name": "Énergie déchargée batterie"
+      },
+      "ac_in_energy_lifetime_kwh": {
+        "name": "Énergie entrée AC (compteur appareil)"
+      },
+      "ac_out_energy_lifetime_kwh": {
+        "name": "Énergie sortie AC (compteur appareil)"
+      },
+      "solar_in_energy_lifetime_kwh": {
+        "name": "Énergie solaire (compteur appareil)"
+      },
+      "dc12v_out_energy_lifetime_kwh": {
+        "name": "Énergie sortie 12 V (compteur appareil)"
+      },
+      "usb_c_out_energy_lifetime_kwh": {
+        "name": "Énergie sortie USB-C (compteur appareil)"
+      },
+      "usb_a_out_energy_lifetime_kwh": {
+        "name": "Énergie sortie USB-A (compteur appareil)"
+      },
+      "battery_charge_energy_lifetime_kwh": {
+        "name": "Énergie chargée (compteur BMS)"
+      },
+      "battery_discharge_energy_lifetime_kwh": {
+        "name": "Énergie déchargée (compteur BMS)"
+      },
+      "extra_soc": {
+        "name": "Batterie supp. {index} niveau de charge"
+      },
+      "extra_soh": {
+        "name": "Batterie supp. {index} état de santé"
+      },
+      "extra_cycles": {
+        "name": "Batterie supp. {index} cycles"
+      },
+      "extra_temp_c": {
+        "name": "Batterie supp. {index} température"
+      },
+      "extra_voltage_v": {
+        "name": "Batterie supp. {index} tension"
+      },
+      "extra_current_a": {
+        "name": "Batterie supp. {index} courant"
+      },
+      "extra_in_power_w": {
+        "name": "Batterie supp. {index} puissance entrée"
+      },
+      "extra_out_power_w": {
+        "name": "Batterie supp. {index} puissance sortie"
+      },
+      "extra_power_w": {
+        "name": "Batterie supp. {index} puissance"
+      },
+      "extra_remain_capacity_mah": {
+        "name": "Batterie supp. {index} capacité restante"
+      },
+      "extra_full_capacity_mah": {
+        "name": "Batterie supp. {index} capacité pleine charge"
+      },
+      "extra_design_capacity_mah": {
+        "name": "Batterie supp. {index} capacité nominale"
+      },
+      "extra_max_cell_temp_c": {
+        "name": "Batterie supp. {index} température cellule max"
+      },
+      "extra_min_cell_temp_c": {
+        "name": "Batterie supp. {index} température cellule min"
+      },
+      "extra_max_cell_voltage_v": {
+        "name": "Batterie supp. {index} tension cellule max"
+      },
+      "extra_min_cell_voltage_v": {
+        "name": "Batterie supp. {index} tension cellule min"
+      },
+      "extra_error_code": {
+        "name": "Batterie supp. {index} code erreur"
+      },
+      "extra_battery_charge_energy_lifetime_kwh": {
+        "name": "Batterie supp. {index} énergie chargée (compteur BMS)"
+      },
+      "extra_battery_discharge_energy_lifetime_kwh": {
+        "name": "Batterie supp. {index} énergie déchargée (compteur BMS)"
+      },
+      "pack_soc": {
+        "name": "Pack batterie {index} niveau de charge"
+      },
+      "pack_power_w": {
+        "name": "Pack batterie {index} puissance"
+      },
+      "pack_remain_energy_wh": {
+        "name": "Pack batterie {index} énergie restante"
+      },
+      "pack_temp_c": {
+        "name": "Pack batterie {index} température"
+      },
+      "pack_remaining_time_min": {
+        "name": "Pack batterie {index} temps restant"
+      },
+      "pack_chg_dsg_state": {
+        "name": "Pack batterie {index} état",
+        "state": {
+          "idle": "Au repos",
+          "charging": "En charge",
+          "discharging": "En décharge"
+        }
+      }
+    },
+    "binary_sensor": {
+      "online": {
+        "name": "En ligne"
+      },
+      "ac_out_enabled": {
+        "name": "Sortie AC"
+      },
+      "dc12v_out_enabled": {
+        "name": "Sortie 12 V"
+      },
+      "usb_out_enabled": {
+        "name": "Sortie USB"
+      },
+      "xboost_enabled": {
+        "name": "X-Boost"
+      },
+      "backup_reserve_enabled": {
+        "name": "Réserve de secours"
+      },
+      "ac_in_connected": {
+        "name": "Entrée AC branchée"
+      }
+    }
+  }
+}

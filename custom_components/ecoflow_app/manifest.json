@@ -1,0 +1,14 @@
+{
+  "domain": "ecoflow_app",
+  "name": "EcoFlow App (batteries)",
+  "codeowners": ["@maringouin10"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/maringouin10/ecoflowapi",
+  "integration_type": "hub",
+  "iot_class": "cloud_push",
+  "issue_tracker": "https://github.com/maringouin10/ecoflowapi/issues",
+  "loggers": ["custom_components.ecoflow_app"],
+  "requirements": ["paho-mqtt>=2.0.0"],
+  "version": "0.1.0"
+}
