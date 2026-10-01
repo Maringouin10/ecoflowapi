@@ -47,6 +47,13 @@ charge, limites de charge…) viendront dans une deuxième étape.
 
 La liste des appareils se modifie ensuite dans **Configurer** sur l'intégration.
 
+### Mises à jour
+
+Chaque nouvelle version publie une release GitHub (`v0.2.0`, …) que HACS
+propose automatiquement. Pour la voir tout de suite : HACS → **EcoFlow App
+(batteries)** → ⋮ → **Mettre à jour les informations**, puis **Mettre à jour**
+et redémarrez Home Assistant.
+
 ## Capteurs
 
 Les capteurs sont créés **quand la batterie envoie la valeur correspondante**,
