@@ -45,6 +45,11 @@ def get_topic(user_id: str, sn: str) -> str:
     return f"/app/{user_id}/{sn}/thing/property/get"
 
 
+def set_topic(user_id: str, sn: str) -> str:
+    """Topic commands for a device are published on."""
+    return f"/app/{user_id}/{sn}/thing/property/set"
+
+
 def get_reply_topic(user_id: str, sn: str) -> str:
     """Topic the device answers requests on."""
     return f"/app/{user_id}/{sn}/thing/property/get_reply"
@@ -190,6 +195,10 @@ class EcoFlowMqttClient:
         """Ask a protobuf device for a full state dump."""
         payload = build_get_all_request(int(time.time() * 1000))
         self._publish(get_topic(self._user_id, sn), payload)
+
+    def send_set(self, sn: str, payload: str | bytes) -> None:
+        """Publish a command (see ``commands.py``) to a device."""
+        self._publish(set_topic(self._user_id, sn), payload)
 
     def request_all(self, serials: Iterable[str] | None = None) -> None:
         """Send both requests to the given (default: every) device."""

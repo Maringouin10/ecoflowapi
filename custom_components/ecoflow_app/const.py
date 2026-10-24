@@ -35,7 +35,7 @@ RECONNECT_MAX_DELAY_S = 300
 # not integrated (the device was offline, nothing is known about that span).
 ENERGY_MAX_GAP_S = 300
 
-PLATFORMS = ["sensor", "binary_sensor"]
+PLATFORMS = ["sensor", "binary_sensor", "switch"]
 
 SIGNAL_NEW_KEYS = f"{DOMAIN}_new_keys_{{entry_id}}"
 STORAGE_VERSION = 1

@@ -83,6 +83,7 @@ class FakeMqtt:
     """Stands in for EcoFlowMqttClient."""
 
     instances: list[FakeMqtt] = []
+    sent: list[tuple[str, Any]] = []
 
     def __init__(self, **kwargs: Any) -> None:
         self.kwargs = kwargs
@@ -102,6 +103,9 @@ class FakeMqtt:
 
     def request_latest_quotas(self, sn: str) -> None:
         pass
+
+    def send_set(self, sn: str, payload: str | bytes) -> None:
+        FakeMqtt.sent.append((sn, payload))
 
 
 async def test_messages_create_entities(hass: HomeAssistant) -> None:
@@ -239,5 +243,57 @@ async def test_dpu_outlet_keeps_its_value_between_incremental_frames(hass: HomeA
         # Never reported: created with 0 W, and still 0 W.
         assert state("sensor.dpu_dc_output_power_anderson") == "0.0"
         assert state("sensor.dpu_dc_output_power_total") == "5.0"
+
+        assert await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_ac_switch_sends_a_command(hass: HomeAssistant) -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id="1234",
+        data={
+            "email": "me@example.com",
+            "password": "pw",
+            "devices": [
+                {
+                    "sn": "R331ZAB0000002",
+                    "name": "Van",
+                    "product_name": "DELTA 2",
+                    "model": "delta_2",
+                }
+            ],
+        },
+    )
+    entry.add_to_hass(hass)
+
+    async def creds(self) -> dict:
+        return {"account": "a", "password": "b", "host": None}
+
+    FakeMqtt.instances.clear()
+    FakeMqtt.sent.clear()
+    with (
+        patch(f"{API}.login", _login),
+        patch(f"{API}.get_mqtt_credentials", creds),
+        patch("custom_components.ecoflow_app.hub.EcoFlowMqttClient", FakeMqtt),
+    ):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        on_message = FakeMqtt.instances[0].kwargs["on_message"]
+        on_message(
+            "/app/device/property/R331ZAB0000002",
+            json.dumps({"params": {"inv.cfgAcEnabled": 0, "pd.carState": 1}}).encode(),
+        )
+        await hass.async_block_till_done()
+
+        assert hass.states.get("switch.van_ac_output").state == "off"
+        assert hass.states.get("switch.van_12_v_output").state == "on"
+
+        await hass.services.async_call(
+            "switch", "turn_on", {"entity_id": "switch.van_ac_output"}, blocking=True
+        )
+        ((sn, payload),) = FakeMqtt.sent
+        assert sn == "R331ZAB0000002"
+        assert json.loads(payload)["operateType"] == "acOutCfg"
+        assert hass.states.get("switch.van_ac_output").state == "on"
 
         assert await hass.config_entries.async_unload(entry.entry_id)

@@ -30,8 +30,24 @@ diagnostic (voir plus bas).
 Les batteries supplémentaires n'ont pas de connexion cloud : leurs valeurs
 arrivent par la batterie principale et apparaissent comme capteurs de celle-ci.
 
-Version actuelle : **lecture seule**. Les commandes (sorties AC/DC, vitesse de
-charge, limites de charge…) viendront dans une deuxième étape.
+## Interrupteurs (commandes)
+
+Des interrupteurs commandent les sorties de la batterie, comme dans l'application :
+
+| Appareil | Sortie AC | Sortie 12 V (DC) | Sortie USB |
+|---|---|---|---|
+| DELTA 2 / RIVER 2 | ✅ | ✅ | ✅ |
+| DELTA 3 / RIVER 3 | ✅ | ✅ | – |
+| DELTA Pro Ultra | – | – | – |
+
+L'interrupteur apparaît dès que la batterie a envoyé l'état de la sortie. La
+DELTA Pro Ultra reste en lecture seule : ses trames de commande ne sont pas
+connues. Les commandes DELTA 2 / RIVER 2 / DELTA 3 / RIVER 3 reprennent celles
+de [tolwi/hassio-ecoflow-cloud](https://github.com/tolwi/hassio-ecoflow-cloud) ;
+elles n'ont pas encore été essayées sur un vrai appareil avec cette
+intégration : ouvrez une issue si une commande n'a aucun effet.
+
+Le reste (vitesse de charge, limites de charge…) est toujours en lecture seule.
 
 ## Installation
 

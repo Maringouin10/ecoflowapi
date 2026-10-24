@@ -25,7 +25,7 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady, HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.dispatcher import (
     async_dispatcher_connect,
@@ -36,6 +36,7 @@ from homeassistant.helpers.storage import Store
 
 from .api import EcoFlowApiError, EcoFlowAppApi, EcoFlowAuthError
 from .calc import ENERGY_SOURCES, derive, integrate
+from .commands import build_switch_command, switch_keys
 from .const import (
     CONF_EMAIL,
     CONF_PASSWORD,
@@ -366,6 +367,31 @@ class EcoFlowHub:
         async_dispatcher_send(self.hass, signal_update(self.entry.entry_id, sn))
 
     # -- helpers for entities -----------------------------------------------
+
+    def switch_keys(self, sn: str) -> set[str]:
+        """Value keys of this device that can be switched on and off."""
+        device = self.devices[sn]
+        return switch_keys(device.dialect or device.model.dialect)
+
+    async def async_set_switch(self, sn: str, key: str, on: bool) -> None:
+        """Switch an output on or off and ask the device for its new state."""
+        device = self.devices[sn]
+        client = self._mqtt
+        if client is None or not client.connected:
+            raise HomeAssistantError("EcoFlow cloud is not connected")
+        try:
+            payload = build_switch_command(device.dialect or device.model.dialect, sn, key, on)
+        except ValueError as exc:
+            raise HomeAssistantError(str(exc)) from exc
+        await self.hass.async_add_executor_job(self._send_switch, client, sn, payload)
+        # Show the new state right away; the device's own report replaces it.
+        device.values[key] = int(on)
+        async_dispatcher_send(self.hass, signal_update(self.entry.entry_id, sn))
+
+    @staticmethod
+    def _send_switch(client: EcoflowMqttClient, sn: str, payload: str | bytes) -> None:
+        client.send_set(sn, payload)
+        client.request_all([sn])
 
     def is_available(self, sn: str) -> bool:
         """Return whether values of this device can be trusted right now."""

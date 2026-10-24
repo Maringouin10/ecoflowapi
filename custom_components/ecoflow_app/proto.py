@@ -291,3 +291,29 @@ def build_get_all_request(seq: int) -> bytes:
         + encode_bytes_field(23, b"app")
     )
     return encode_bytes_field(1, header)
+
+
+def build_set_request(sn: str, field_number: int, value: int, seq: int) -> bytes:
+    """Set one numeric setting of a DELTA 3 / RIVER 3 generation device.
+
+    Same frame the EcoFlow app sends: header ``cmd_func=254 cmd_id=17`` whose
+    ``pdata`` is a message holding only the field to change.
+    """
+    pdata = encode_varint_field(field_number, value)
+    header = (
+        encode_bytes_field(1, pdata)
+        + encode_varint_field(2, 32)
+        + encode_varint_field(3, 2)
+        + encode_varint_field(4, 1)
+        + encode_varint_field(5, 1)
+        + encode_varint_field(8, 254)
+        + encode_varint_field(9, 17)
+        + encode_varint_field(10, len(pdata))
+        + encode_varint_field(11, 1)
+        + encode_varint_field(14, seq & 0x7FFFFFFF)
+        + encode_varint_field(15, 1)
+        + encode_varint_field(16, 19)
+        + encode_varint_field(17, 1)
+        + encode_bytes_field(25, sn.encode())
+    )
+    return encode_bytes_field(1, header)

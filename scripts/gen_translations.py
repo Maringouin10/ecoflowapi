@@ -373,6 +373,8 @@ BINARY = {
     "solar_only_enabled": ("Solar only charging", "Charge solaire uniquement"),
 }
 
+SWITCH_KEYS = ("ac_out_enabled", "dc12v_out_enabled", "usb_out_enabled")
+
 
 def build(lang: int, code: str) -> dict:
     sensors: dict[str, dict] = {}
@@ -390,6 +392,7 @@ def build(lang: int, code: str) -> dict:
         "entity": {
             "sensor": sensors,
             "binary_sensor": {k: {"name": v[lang]} for k, v in BINARY.items()},
+            "switch": {k: {"name": BINARY[k][lang]} for k in SWITCH_KEYS},
         },
     }
 
