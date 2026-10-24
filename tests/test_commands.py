@@ -23,7 +23,7 @@ def test_gen3_ac_on_is_a_set_frame() -> None:
 def test_gen3_dc_off_sets_field_18_to_zero() -> None:
     payload = build_switch_command(DIALECT_GEN3, "P351ZAB0000001", "dc12v_out_enabled", False)
     (frame,) = decode_frames(payload)
-    assert frame.pdata == bytes([18 << 3, 0])
+    assert frame.pdata == bytes([0x90, 0x01, 0])  # field 18, value 0
 
 
 def test_json_commands() -> None:
