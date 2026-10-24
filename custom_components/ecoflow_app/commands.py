@@ -6,8 +6,11 @@ same thing, and the command set below is what the EcoFlow app sends:
 * ``gen3`` - protobuf set frame, one numeric field per output.
 * ``json`` - ``operateType`` + ``params`` message.
 
-The DELTA Pro Ultra has no entry: its set frames are not known, so it gets
-no switch rather than one that does nothing.
+* ``dpu``  - protobuf set frame on ``cmd_func=2``. Only the DC output is
+  known (``cmd_id=68``); the AC command has never been published.
+
+Devices that never report the state of an output (DELTA Pro Ultra, DELTA 3
+Ultra) still get the switch; it then shows the last command sent.
 """
 
 from __future__ import annotations
@@ -17,14 +20,17 @@ import json
 import time
 from typing import Any
 
-from .models import DIALECT_GEN3, DIALECT_JSON
-from .proto import build_set_request
+from .models import DIALECT_DPU, DIALECT_GEN3, DIALECT_JSON
+from .proto import build_dpu_set_request, build_set_request
 
 # value key (the state the switch shows) -> field of the gen3 set message
 _GEN3_FIELDS: dict[str, int] = {
     "ac_out_enabled": 76,  # cfg_ac_out_open
     "dc12v_out_enabled": 18,  # cfg_dc12v_out_open
 }
+
+# value key -> cmd_id of the DELTA Pro Ultra set frame
+_DPU_COMMANDS: dict[str, int] = {"dc12v_out_enabled": 68}
 
 # value key -> (moduleType, operateType, params for a given on/off value)
 _JSON_COMMANDS: dict[str, tuple[int, str, Callable[[int], dict[str, Any]]]] = {
@@ -44,6 +50,8 @@ def switch_keys(dialect: str) -> set[str]:
         return set(_GEN3_FIELDS)
     if dialect == DIALECT_JSON:
         return set(_JSON_COMMANDS)
+    if dialect == DIALECT_DPU:
+        return set(_DPU_COMMANDS)
     return set()
 
 
@@ -53,6 +61,8 @@ def build_switch_command(dialect: str, sn: str, key: str, on: bool) -> str | byt
     stamp = int(time.time() * 1000)
     if dialect == DIALECT_GEN3 and key in _GEN3_FIELDS:
         return build_set_request(sn, _GEN3_FIELDS[key], value, stamp)
+    if dialect == DIALECT_DPU and key in _DPU_COMMANDS:
+        return build_dpu_set_request(sn, _DPU_COMMANDS[key], value, stamp)
     if dialect == DIALECT_JSON and key in _JSON_COMMANDS:
         module, operate, params = _JSON_COMMANDS[key]
         return json.dumps(

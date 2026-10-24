@@ -80,6 +80,8 @@ class DeviceState:
     last_seen: float = 0.0
     dialect: str = ""
     cloud_online: bool | None = None
+    # switch key -> last commanded state, for outputs the device never reports
+    commanded: dict[str, int] = field(default_factory=dict)
     message_count: int = 0
     unknown_frames: dict[str, list[int]] = field(default_factory=dict)
     # energy key -> (monotonic time, power W) of the previous reading
@@ -385,7 +387,7 @@ class EcoFlowHub:
             raise HomeAssistantError(str(exc)) from exc
         await self.hass.async_add_executor_job(self._send_switch, client, sn, payload)
         # Show the new state right away; the device's own report replaces it.
-        device.values[key] = int(on)
+        device.commanded[key] = int(on)
         async_dispatcher_send(self.hass, signal_update(self.entry.entry_id, sn))
 
     @staticmethod

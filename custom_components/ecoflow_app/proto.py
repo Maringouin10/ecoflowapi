@@ -317,3 +317,30 @@ def build_set_request(sn: str, field_number: int, value: int, seq: int) -> bytes
         + encode_bytes_field(25, sn.encode())
     )
     return encode_bytes_field(1, header)
+
+
+def build_dpu_set_request(sn: str, cmd_id: int, value: int, seq: int) -> bytes:
+    """Set one setting of a DELTA Pro Ultra (``cmd_func=2``).
+
+    Same frame as the app: the value is field 1 of ``pdata``, and a value of
+    0 is sent as an empty ``pdata``.
+    """
+    pdata = encode_varint_field(1, value) if value else b""
+    header = (
+        (encode_bytes_field(1, pdata) if pdata else b"")
+        + encode_varint_field(2, 32)
+        + encode_varint_field(3, 2)
+        + encode_varint_field(4, 1)
+        + encode_varint_field(5, 1)
+        + encode_varint_field(7, 3)
+        + encode_varint_field(8, 2)
+        + encode_varint_field(9, cmd_id)
+        + (encode_varint_field(10, len(pdata)) if pdata else b"")
+        + encode_varint_field(11, 1)
+        + encode_varint_field(14, seq & 0x7FFFFFFF)
+        + encode_varint_field(16, 19)
+        + encode_varint_field(17, 1)
+        + encode_bytes_field(23, b"ios")
+        + encode_bytes_field(25, sn.encode())
+    )
+    return encode_bytes_field(1, header)

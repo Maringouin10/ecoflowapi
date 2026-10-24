@@ -36,8 +36,18 @@ def test_json_commands() -> None:
     assert (usb["moduleType"], usb["operateType"]) == (1, "dcOutCfg")
 
 
+def test_dpu_dc_frame_follows_the_app() -> None:
+    on = build_switch_command(DIALECT_DPU, "Y711ZAB0000009", "dc12v_out_enabled", True)
+    (frame,) = decode_frames(on)
+    assert (frame.cmd_func, frame.cmd_id, frame.dest) == (2, 68, 2)
+    assert frame.pdata == bytes([0x08, 1])  # field 1 = 1
+    off = build_switch_command(DIALECT_DPU, "Y711ZAB0000009", "dc12v_out_enabled", False)
+    (frame,) = decode_frames(off)
+    assert frame.pdata == b""
+
+
 def test_unknown_combinations_are_refused() -> None:
-    assert switch_keys(DIALECT_DPU) == set()
+    assert switch_keys(DIALECT_DPU) == {"dc12v_out_enabled"}
     with pytest.raises(ValueError):
         build_switch_command(DIALECT_DPU, "Y711ZAB0000009", "ac_out_enabled", True)
     with pytest.raises(ValueError):
